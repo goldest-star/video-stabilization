@@ -1,8 +1,13 @@
 #pragma once
 
+#include <iostream>
+
 #include "filter.hpp"
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/calib3d.hpp>
+
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudaoptflow.hpp>

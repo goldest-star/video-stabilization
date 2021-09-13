@@ -14,13 +14,20 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     std::deque<cv::Point3f> vPointsInTime(HISTORY_LIMIT);
 
     double kernelArr[] = {0, -1, 0, -1, 5, -1, 0, -1, 0}; // Unsharp masking
-    cv::Mat kernel(3, 3, CV_64F, kernelArr), H;
+    cv::Mat kernel(3, 3, CV_64F, kernelArr), H, cropperMat;
 
     cv::Mat orgCPUFrame, outCPUFrame;
-    cv::cuda::GpuMat orgFrame, currFrame, prevFrame, bufferFrame, splitFrame[3];
+    cv::cuda::GpuMat orgFrame, currFrame, prevFrame, bufferFrame;
+    std::vector<cv::cuda::GpuMat> splitFrame;
+
+    cv::Ptr<cv::cuda::ORB> pDetector;
+    cv::Ptr<cv::cuda::Filter> pFilter;
+    cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> pTracker;
+
+    cv::VideoCapture capVid;
+    cv::VideoWriter writerVid;
 
     // Init capture engine
-    cv::VideoCapture capVid;
     camVal = strtol(input, &strPtr, 10);
     if (strPtr - input == strlen(input))
         capVid.open(camVal);
@@ -33,7 +40,6 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     }
 
     // Init output engine;
-    cv::VideoWriter writerVid;
     camVal = strtol(output, &strPtr, 10);
     if (strPtr - output != strlen(output))
     {
@@ -55,7 +61,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     }
 
     // Init detection engine
-    cv::Ptr<cv::cuda::ORB> pDetector = cv::cuda::ORB::create();
+    pDetector = cv::cuda::ORB::create();
     if (pDetector.empty())
     {
         printf("Can't init detection engine\n");
@@ -63,7 +69,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     }
 
     // Init tracking engine
-    cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> pTracker = cv::cuda::SparsePyrLKOpticalFlow::create();
+    pTracker = cv::cuda::SparsePyrLKOpticalFlow::create();
     if (pTracker.empty())
     {
         printf("Can't init tracking engine\n");
@@ -83,7 +89,6 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     prevPoints = fKeyPoint2StdVector(vKeyPoints);
 
     // Init filter engine
-    cv::Ptr<cv::cuda::Filter> pFilter;
     if (enhance)
     {
         pFilter = cv::cuda::createLinearFilter(orgFrame.type(), orgFrame.type(), kernel);
@@ -95,7 +100,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     }
 
     // Main process
-    cv::Mat cropperMat = cv::getRotationMatrix2D(cv::Point2f(orgFrame.cols / 2, orgFrame.rows / 2), 0, SCALE_FACTOR);
+    cropperMat = cv::getRotationMatrix2D(cv::Point2f(orgFrame.cols / 2, orgFrame.rows / 2), 0, SCALE_FACTOR);
     while (capVid.isOpened())
     {
         // Read frame

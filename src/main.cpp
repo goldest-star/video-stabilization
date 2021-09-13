@@ -48,7 +48,7 @@ select:;
 int main(int argc, char *argv[])
 {
     // Check number of inputs
-    if (argc != 3)
+    if (argc % 2 != 1)
     {
         printf("Usage ./videoStabilization {Input} {Output}\n\n");
         printf("\tPossible input values:\n");
@@ -63,6 +63,18 @@ int main(int argc, char *argv[])
     int deviceNum = -1;
     if (!cuda_init(deviceNum))
         return EXIT_FAILURE;
+
+    // Start threads
+    std::vector<std::thread> vTh;
+    for (size_t idx = 1; idx < argc; ++idx)
+    {
+        std::thread th(mainProcess, argv[idx], argv[idx + 1], deviceNum, true);
+        vTh.push_back(std::move(th));
+    }
+
+    // Join
+    for (auto &entry : vTh)
+        entry.join();
 
     return 0;
 }

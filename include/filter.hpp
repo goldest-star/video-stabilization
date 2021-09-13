@@ -1,8 +1,9 @@
 #pragma once
 
+#include <deque>
 #include <vector>
 #include <algorithm>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/types.hpp>
 
 // #define ORB_DETECTOR
 #ifndef ORB_DETECTOR
@@ -15,7 +16,7 @@
 #define MOTION_THRESH 75
 #define SCALE_FACTOR 1.2
 #define HISTORY_LIMIT 30
-#define SMOOTHING_RADIUS 25  // Must be less than HISTORY LIMIT
+#define SMOOTHING_RADIUS 25 // Must be less than HISTORY LIMIT
 
 #define _DECL_STABILIZER_DEBUG
 #define _DECL_STABILIZER_FPS
