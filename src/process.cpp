@@ -42,7 +42,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     camVal = strtol(output, &strPtr, 10);
     if (strPtr - output - 1 != strlen(output))
     {
-        cv::namedWindow(input, cv::WINDOW_OPENGL);
+        //cv::namedWindow(input, cv::WINDOW_AUTOSIZE);
         showFlag = true;
     }
     else
@@ -85,6 +85,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     orgFrame.upload(orgCPUFrame);
     cv::cuda::cvtColor(orgFrame, prevFrame, cv::COLOR_BGR2GRAY);
     pDetector->detect(prevFrame, vKeyPoints);
+    // TODO: Exception if no key points
     prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
     prevPoints.upload(prevPointBuff);
 
@@ -146,13 +147,14 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
             pFilter->apply(splitFrame[2], splitFrame[2]);
             cv::cuda::merge(splitFrame, orgFrame);
 
-            cv::cuda::cvtColor(orgFrame, bufferFrame, cv::COLOR_BGR2HSV);
+            cv::cuda::cvtColor(orgFrame, bufferFrame, cv::COLOR_BGR2HLS);
 
             cv::cuda::split(bufferFrame, splitFrame);
             cv::cuda::equalizeHist(splitFrame[1], splitFrame[1]);
             cv::cuda::merge(splitFrame, bufferFrame);
 
-            cv::cuda::cvtColor(bufferFrame, orgFrame, cv::COLOR_HSV2BGR);
+            // Convert RGB since older OpenGL does not support BGR
+            cv::cuda::cvtColor(bufferFrame, orgFrame, cv::COLOR_HLS2RGB);
 
             cv::cuda::bilateralFilter(orgFrame, orgFrame, 5, 45, 45);
         }
@@ -161,14 +163,14 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
         cv::cuda::warpAffine(orgFrame, orgFrame, H, orgFrame.size(), cv::WARP_INVERSE_MAP);
 
         // Crop
-        cv::cuda::warpAffine(orgFrame, orgFrame, cropperMat, orgFrame.size());
+        //cv::cuda::warpAffine(orgFrame, orgFrame, cropperMat, orgFrame.size());
 
         // Write output
         orgFrame.download(outCPUFrame);
         if (showFlag)
         {
-            cv::imshow(input, outCPUFrame);
-            cv::waitKey(1);
+            //cv::imshow(input, outCPUFrame);
+            cv::waitKey(100);
         }
         else
             writerVid.write(outCPUFrame);
@@ -178,6 +180,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
 
         // Calculate points
         pDetector->detect(prevFrame, vKeyPoints);
+        // TODO: Exception if no key points
         prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
         prevPoints.upload(prevPointBuff);
     }

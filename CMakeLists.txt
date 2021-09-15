@@ -4,6 +4,7 @@ project(videoStabilization VERSION 1.0.0)
 
 # Set OpenCV
 find_package(OpenCV REQUIRED)
+find_package(OpenGL REQUIRED)
 
 # Compile options
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release")
@@ -18,4 +19,4 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Compile
 add_executable(videoStabilization ${ProjectSources})
-target_link_libraries(videoStabilization ${OpenCV_LIBS})
+target_link_libraries(videoStabilization ${OPENGL_LIBRARIES} ${OpenCV_LIBS})
