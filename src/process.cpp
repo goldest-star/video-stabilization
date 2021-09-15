@@ -8,16 +8,15 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     int camVal = 0;
     bool showFlag = false;
     char *strPtr = nullptr;
-    std::vector<uchar> status;
     std::vector<cv::KeyPoint> vKeyPoints;
-    std::vector<cv::Point2f> prevPoints, currPoints;
     std::deque<cv::Point3f> vPointsInTime(HISTORY_LIMIT);
 
     double kernelArr[] = {0, -1, 0, -1, 5, -1, 0, -1, 0}; // Unsharp masking
     cv::Mat kernel(3, 3, CV_64F, kernelArr), H, cropperMat;
 
     cv::Mat orgCPUFrame, outCPUFrame;
-    cv::cuda::GpuMat orgFrame, currFrame, prevFrame, bufferFrame;
+    cv::Mat prevPointBuff, currPointBuff;
+    cv::cuda::GpuMat orgFrame, currFrame, prevFrame, bufferFrame, prevPoints, currPoints, status;
     std::vector<cv::cuda::GpuMat> splitFrame;
 
     cv::Ptr<cv::cuda::ORB> pDetector;
@@ -41,7 +40,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
 
     // Init output engine;
     camVal = strtol(output, &strPtr, 10);
-    if (strPtr - output != strlen(output))
+    if (strPtr - output - 1 != strlen(output))
     {
         cv::namedWindow(input, cv::WINDOW_OPENGL);
         showFlag = true;
@@ -86,12 +85,13 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     orgFrame.upload(orgCPUFrame);
     cv::cuda::cvtColor(orgFrame, prevFrame, cv::COLOR_BGR2GRAY);
     pDetector->detect(prevFrame, vKeyPoints);
-    prevPoints = fKeyPoint2StdVector(vKeyPoints);
+    prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
+    prevPoints.upload(prevPointBuff);
 
     // Init filter engine
     if (enhance)
     {
-        pFilter = cv::cuda::createLinearFilter(orgFrame.type(), orgFrame.type(), kernel);
+        pFilter = cv::cuda::createLinearFilter(CV_8U, CV_8U, kernel);
         if (pFilter.empty())
         {
             printf("Can't init filter engine\n");
@@ -116,7 +116,8 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
         pTracker->calc(prevFrame, currFrame, prevPoints, currPoints, status);
 
         // Calculate Transformation
-        H = cv::estimateAffine2D(prevPoints, currPoints);
+        currPoints.download(currPointBuff);
+        H = cv::estimateAffine2D(prevPointBuff, currPointBuff);
         cv::Point3f d(H.at<double>(0, 2), H.at<double>(1, 2), atan2(H.at<double>(1, 0), H.at<double>(0, 0)));
 
         // Update buffer
@@ -138,12 +139,21 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
         if (enhance)
         {
             cv::cuda::bilateralFilter(orgFrame, orgFrame, 5, 45, 45);
-            pFilter->apply(orgFrame, orgFrame);
+
+            cv::cuda::split(orgFrame, splitFrame);
+            pFilter->apply(splitFrame[0], splitFrame[0]);
+            pFilter->apply(splitFrame[1], splitFrame[1]);
+            pFilter->apply(splitFrame[2], splitFrame[2]);
+            cv::cuda::merge(splitFrame, orgFrame);
+
             cv::cuda::cvtColor(orgFrame, bufferFrame, cv::COLOR_BGR2HSV);
+
             cv::cuda::split(bufferFrame, splitFrame);
             cv::cuda::equalizeHist(splitFrame[1], splitFrame[1]);
             cv::cuda::merge(splitFrame, bufferFrame);
+
             cv::cuda::cvtColor(bufferFrame, orgFrame, cv::COLOR_HSV2BGR);
+
             cv::cuda::bilateralFilter(orgFrame, orgFrame, 5, 45, 45);
         }
 
@@ -168,7 +178,8 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
 
         // Calculate points
         pDetector->detect(prevFrame, vKeyPoints);
-        prevPoints = fKeyPoint2StdVector(vKeyPoints);
+        prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
+        prevPoints.upload(prevPointBuff);
     }
 
 cleanup:
