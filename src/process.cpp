@@ -42,7 +42,7 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     camVal = strtol(output, &strPtr, 10);
     if (strPtr - output - 1 != strlen(output))
     {
-        //cv::namedWindow(input, cv::WINDOW_AUTOSIZE);
+        cv::namedWindow(input, cv::WINDOW_AUTOSIZE);
         showFlag = true;
     }
     else
@@ -160,16 +160,16 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
         }
 
         // Stabilize
-        cv::cuda::warpAffine(orgFrame, orgFrame, H, orgFrame.size(), cv::WARP_INVERSE_MAP);
+        cv::cuda::warpAffine(orgFrame, bufferFrame, H, orgFrame.size(), cv::WARP_INVERSE_MAP);
 
         // Crop
-        //cv::cuda::warpAffine(orgFrame, orgFrame, cropperMat, orgFrame.size());
+        cv::cuda::warpAffine(bufferFrame, orgFrame, cropperMat, orgFrame.size());
 
         // Write output
         orgFrame.download(outCPUFrame);
         if (showFlag)
         {
-            //cv::imshow(input, outCPUFrame);
+            cv::imshow(input, outCPUFrame);
             cv::waitKey(100);
         }
         else
