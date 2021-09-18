@@ -1,12 +1,11 @@
 #include "process.hpp"
 
-void mainProcess(char *input, char *output, int deviceNum, bool enhance)
+void mainProcess(char *input, int thID, int deviceNum, bool enhance)
 {
     cv::cuda::setDevice(deviceNum);
 
     // Init variables
     int camVal = 0;
-    bool showFlag = false;
     char *strPtr = nullptr;
     std::vector<cv::KeyPoint> vKeyPoints;
     std::deque<cv::Point3f> vPointsInTime(HISTORY_LIMIT);
@@ -24,7 +23,6 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> pTracker;
 
     cv::VideoCapture capVid;
-    cv::VideoWriter writerVid;
 
     // Init capture engine
     camVal = strtol(input, &strPtr, 10);
@@ -35,27 +33,6 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
     if (!capVid.isOpened())
     {
         printf("Can't init input %s\n", input);
-        goto cleanup;
-    }
-
-    // Init output engine;
-    camVal = strtol(output, &strPtr, 10);
-    if (strPtr - output - 1 != strlen(output))
-    {
-        cv::namedWindow(input, cv::WINDOW_AUTOSIZE);
-        showFlag = true;
-    }
-    else
-        writerVid.open(output,
-                       cv::CAP_FFMPEG,
-                       capVid.get(cv::CAP_PROP_FOURCC),
-                       capVid.get(cv::CAP_PROP_FPS),
-                       cv::Size(capVid.get(cv::CAP_PROP_FRAME_WIDTH), capVid.get(cv::CAP_PROP_FRAME_HEIGHT)),
-                       capVid.get(cv::CAP_PROP_CHANNEL) - 1);
-
-    if (!showFlag && !writerVid.isOpened())
-    {
-        printf("Can't init output %s\n", output);
         goto cleanup;
     }
 
@@ -166,16 +143,10 @@ void mainProcess(char *input, char *output, int deviceNum, bool enhance)
         cv::cuda::warpAffine(bufferFrame, orgFrame, cropperMat, orgFrame.size());
 
         // Write output
-        orgFrame.download(outCPUFrame);
-        if (showFlag)
-        {
-            cv::imshow(input, outCPUFrame);
-            cv::waitKey(100);
-        }
-        else
-            writerVid.write(outCPUFrame);
+        orgFrame.download(orgCPUFrame);
+        updateWindow(subWindows[thID], orgCPUFrame);
 
-        // Swap frames
+        // Swap gray frames
         cv::cuda::swap(prevFrame, currFrame);
 
         // Calculate points
@@ -189,10 +160,6 @@ cleanup:
     printf("Closing\n");
 
     capVid.release();
-    if (showFlag)
-        cv::destroyWindow(input);
-    else
-        writerVid.release();
 
     return;
 }

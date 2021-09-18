@@ -14,9 +14,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/build/bin")
 
 FILE(GLOB ProjectSources ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.c ${PROJECT_SOURCE_DIR}/src/**/*.cpp ${PROJECT_SOURCE_DIR}/src/**/*.c)
 
+# Thirdparty libraries
+add_subdirectory(thirdparty/freeglut-3.2.1)
+
 # Project files
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(thirdparty/freeglut-3.2.1/include)
 
 # Compile
 add_executable(videoStabilization ${ProjectSources})
-target_link_libraries(videoStabilization ${OPENGL_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(videoStabilization freeglut_static ${OPENGL_LIBRARIES} ${OpenCV_LIBS})

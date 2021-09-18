@@ -54,27 +54,38 @@ int main(int argc, char *argv[])
         printf("\tPossible input values:\n");
         printf("\t\t Path to a video file\n");
         printf("\t\t Camera num\n\n");
-        printf("\tPossible output values:\n");
-        printf("\t\t Path to a video file\n");
-        printf("\t\t 0 for realtime\n\n");
+        return EXIT_FAILURE;
     }
+    char vid1[] = "C:\\Users\\egece\\Videos\\4K Road traffic video for object detection and tracking.mp4";
+    char vid2[] = "0";
 
     // Init CUDA device
     int deviceNum = -1;
     if (!cuda_init(deviceNum))
         return EXIT_FAILURE;
 
+    // Init GLUT
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+    mainWindow = createMainWindow("video");
+    createSubWindow(mainWindow, 2, 2);
+
     // Start threads
     std::vector<std::thread> vTh;
+    std::thread expThread(mainProcess, vid1, 0, deviceNum, true);
+    vTh.push_back(std::move(expThread));
     for (size_t idx = 1; idx < argc; ++idx)
     {
-        std::thread th(mainProcess, argv[idx], argv[idx + 1], deviceNum, true);
+        std::thread th(mainProcess, argv[idx], idx - 1, deviceNum, true);
         vTh.push_back(std::move(th));
     }
 
     // Join
+    glutMainLoop();
     for (auto &entry : vTh)
         entry.join();
+
+    destroyWindow(mainWindow);
 
     return 0;
 }

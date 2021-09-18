@@ -15,4 +15,4 @@
 #include "filter.hpp"
 #include "render.hpp"
 
-void mainProcess(char *input, char *output, int deviceNum, bool enhance = true);
+void mainProcess(char *input, int thID, int deviceNum, bool enhance = true);
