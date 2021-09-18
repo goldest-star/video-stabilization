@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         printf("\t\t - Camera num (Ex: 0)\n\n");
         return EXIT_FAILURE;
     }
-    printf("Press " q " for exit\n");
+    printf("Press \"q\" for exit\n");
 
     // Init CUDA device
     int deviceNum = -1;
