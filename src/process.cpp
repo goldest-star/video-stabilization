@@ -59,12 +59,18 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
         goto cleanup;
     }
 
-    orgFrame.upload(orgCPUFrame);
-    cv::cuda::cvtColor(orgFrame, prevFrame, cv::COLOR_BGR2GRAY);
-    pDetector->detect(prevFrame, vKeyPoints);
-    // TODO: Exception if no key points
-    prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
-    prevPoints.upload(prevPointBuff);
+    // Find initial keypoints
+    while (prevPointBuff.empty())
+    {
+        orgFrame.upload(orgCPUFrame);
+        cv::cuda::cvtColor(orgFrame, prevFrame, cv::COLOR_BGR2GRAY);
+        pDetector->detect(prevFrame, vKeyPoints);
+        if (vKeyPoints.size())
+        {
+            prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
+            prevPoints.upload(prevPointBuff);
+        }
+    }
 
     // Init filter engine
     if (enhance)
@@ -151,9 +157,11 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
 
         // Calculate points
         pDetector->detect(prevFrame, vKeyPoints);
-        // TODO: Exception if no key points
-        prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
-        prevPoints.upload(prevPointBuff);
+        if (vKeyPoints.size())
+        {
+            prevPointBuff = cv::Mat(fKeyPoint2StdVector(vKeyPoints), CV_32FC2).t();
+            prevPoints.upload(prevPointBuff);
+        }
     }
 
 cleanup:
