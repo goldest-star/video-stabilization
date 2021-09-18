@@ -1,15 +1,31 @@
 #include "render.hpp"
 
+bool loopFlag;
 GLint mainWindow;
 std::vector<GLint> subWindows;
 std::vector<GLuint> textureBuffer;
 std::vector<cv::Mat> renderBuffer;
 
+void keyboardFunc(unsigned char key, int x, int y)
+{
+    loopFlag = false;
+#ifdef _WIN32
+    Sleep(1000);
+#else
+    usleep(1000);
+#endif
+    if (key == 81 || key == 113)
+        glutLeaveMainLoop();
+}
+
 void timerFunc(int val)
 {
-    glutSetWindow(mainWindow);
-    glutPostRedisplay();
-    glutTimerFunc(1000 / FPS, timerFunc, 0);
+    if (loopFlag)
+    {
+        glutSetWindow(mainWindow);
+        glutPostRedisplay();
+        glutTimerFunc(1000 / FPS, timerFunc, 0);
+    }
 }
 
 void refreshMainFunc()
@@ -87,6 +103,7 @@ GLint createMainWindow(const char *winName)
     glutInitWindowPosition(0, 0);
     GLint retval = glutCreateWindow(winName);
     glutDisplayFunc(refreshMainFunc);
+    glutKeyboardFunc(keyboardFunc);
     glutTimerFunc(1000 / FPS, timerFunc, 0);
 
     return retval;

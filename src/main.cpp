@@ -48,16 +48,15 @@ select:;
 int main(int argc, char *argv[])
 {
     // Check number of inputs
-    if (argc % 2 != 1)
+    if (argc == 1)
     {
-        printf("Usage ./videoStabilization {Input} {Output}\n\n");
+        printf("Usage ./videoStabilization {Input_1} {Input_2} ... {Input_n}\n\n");
         printf("\tPossible input values:\n");
-        printf("\t\t Path to a video file\n");
-        printf("\t\t Camera num\n\n");
+        printf("\t\t - Path to a video file (Ex: /path/to/file/video.mp4) \n");
+        printf("\t\t - Camera num (Ex: 0)\n\n");
         return EXIT_FAILURE;
     }
-    char vid1[] = "C:\\Users\\egece\\Videos\\4K Road traffic video for object detection and tracking.mp4";
-    char vid2[] = "0";
+    printf("Press " q " for exit\n");
 
     // Init CUDA device
     int deviceNum = -1;
@@ -68,12 +67,17 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
     mainWindow = createMainWindow("video");
-    createSubWindow(mainWindow, 2, 2);
+
+    int x = sqrt(argc);
+    int y = sqrt(argc);
+    if (x * y < argc)
+        x += 1;
+
+    createSubWindow(mainWindow, x, y);
 
     // Start threads
+    loopFlag = true;
     std::vector<std::thread> vTh;
-    std::thread expThread(mainProcess, vid1, 0, deviceNum, true);
-    vTh.push_back(std::move(expThread));
     for (size_t idx = 1; idx < argc; ++idx)
     {
         std::thread th(mainProcess, argv[idx], idx - 1, deviceNum, true);

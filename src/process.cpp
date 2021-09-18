@@ -85,7 +85,7 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
 
     // Main process
     cropperMat = cv::getRotationMatrix2D(cv::Point2f(orgFrame.cols / 2, orgFrame.rows / 2), 0, SCALE_FACTOR);
-    while (capVid.isOpened())
+    while (loopFlag && capVid.isOpened())
     {
         // Read frame
         if (!capVid.read(orgCPUFrame))
@@ -166,6 +166,7 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
 
 cleanup:
     printf("Closing\n");
+    glutDestroyWindow(subWindows[thID]);
 
     capVid.release();
 
