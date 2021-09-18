@@ -1,4 +1,4 @@
-# VideoStabilization
+# Video Stabilization
  
 <!--- [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fegecetin%2FVideoStabilization)](https://hits.seeyoufarm.com) -->
 ![GitHub](https://img.shields.io/badge/Language-C++-informational?style=plastic)
@@ -6,10 +6,13 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/egecetin/VideoStabilization?style=plastic)
 
 <!-- Add example gif here !!!-->
+<img src="https://github.com/egecetin/VideoStabilization/blob/e4f61a678b718967eeb3c080a297a7d45ec82dfd/resource/sample.gif" alt="drawing" width="200"/>
 
 ## Contents
 
 * [General Info](#general-info)
+* [Installation](#installation)
+* [To Do](#to-do)
 
 ## General Info
 
@@ -18,3 +21,11 @@ Video stabilization is a software-based approach in real-time to eliminating env
 * Opencv 4.5.3
 * Cuda 11.2
 * Freeglut 3.2.1
+
+## Installation
+
+You can download the installer from releases or build from source using CMake.
+
+## To Do
+
+NVIDIA Codec SDK based GPU accelerated video decode and encode.
