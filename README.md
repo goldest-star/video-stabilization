@@ -24,7 +24,7 @@ Video stabilization is a software-based approach in real-time to eliminating env
 
 ## Installation
 
-You can download the installer from releases or build from source using CMake.
+You can build from source using CMake.
 
 ## To Do
 
