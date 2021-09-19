@@ -1,4 +1,5 @@
 #include <vector>
+#include <numeric>
 
 #include <opencv2/opencv.hpp>
 
@@ -14,6 +15,7 @@
 extern bool loopFlag;
 extern GLint mainWindow;
 extern std::vector<GLint> subWindows;
+extern std::vector<uint8_t> activeSubWin;
 extern std::vector<cv::Mat> renderBuffer;
 
 void createSubWindow(GLint mainWin, int maxX, int maxY);

@@ -19,23 +19,30 @@ std::vector<cv::Point2f> fKeyPoint2StdVector(std::vector<cv::KeyPoint> &keypoint
   return pts;
 }
 
-int fCleanPoints(std::vector<cv::Point2f> &prevPoints, std::vector<cv::Point2f> &currPoints, std::vector<uchar> &status)
+int fCleanPoints(cv::Mat &prevPoints, cv::Mat &currPoints, cv::Mat &status)
 {
   int N = 0;
   std::vector<cv::Point2f> newPrevPoints, newCurrPoints;
+  std::vector<cv::Point2f> prevPointsBuffer, currPointsBuffer;
 
-  newPrevPoints.reserve(status.size());
-  newCurrPoints.reserve(status.size());
+  newPrevPoints.reserve(status.rows * status.cols);
+  newCurrPoints.reserve(status.rows * status.cols);
 
-  for (int idx = 0; idx < status.size(); ++idx)
+  prevPointsBuffer.assign(prevPoints.begin<cv::Point2f>(), prevPoints.end<cv::Point2f>());
+  currPointsBuffer.assign(currPoints.begin<cv::Point2f>(), currPoints.end<cv::Point2f>());
+
+  for (int idx = 0; idx < status.cols * status.rows; ++idx)
   {
-    if (status[idx])
+    if (status.data[idx])
     {
-      newPrevPoints.push_back(prevPoints[idx]);
-      newCurrPoints.push_back(currPoints[idx]);
+      newPrevPoints.push_back(prevPointsBuffer[idx]);
+      newCurrPoints.push_back(currPointsBuffer[idx]);
       ++N;
     }
   }
+
+  prevPoints = cv::Mat(newPrevPoints, true);
+  currPoints = cv::Mat(newCurrPoints, true);
   return N;
 }
 
@@ -45,17 +52,17 @@ cv::Point3f fMovingAverage(const std::deque<cv::Point3f> &vPointsInTime, const i
   std::vector<cv::Point3f> vSum;
 
   vSum.reserve(smoothRadius);
-  for (int idx = vPointsInTime.size() - smoothRadius; idx < vPointsInTime.size(); ++idx)
+  for (size_t idx = vPointsInTime.size() - smoothRadius; idx < vPointsInTime.size(); ++idx)
   {
     cv::Point3f sum(0, 0, 0);
-    for (int jdx = 0; jdx < idx; ++jdx)
+    for (size_t jdx = 0; jdx < idx; ++jdx)
     {
       sum += vPointsInTime[jdx];
     }
     vSum.push_back(sum);
   }
 
-  for (int idx = 0; idx < vSum.size(); ++idx)
+  for (size_t idx = 0; idx < vSum.size(); ++idx)
   {
     output += vSum[idx];
   }

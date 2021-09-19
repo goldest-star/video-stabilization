@@ -66,11 +66,11 @@ int main(int argc, char *argv[])
     // Init GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    mainWindow = createMainWindow("video");
+    mainWindow = createMainWindow("Video");
 
-    int x = sqrt(argc);
-    int y = sqrt(argc);
-    if (x * y < argc)
+    int x = sqrt(argc - 1);
+    int y = sqrt(argc - 1);
+    if (x * y < argc - 1)
         x += 1;
 
     createSubWindow(mainWindow, x, y);

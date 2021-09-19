@@ -3,6 +3,7 @@
 bool loopFlag;
 GLint mainWindow;
 std::vector<GLint> subWindows;
+std::vector<uint8_t> activeSubWin;
 std::vector<GLuint> textureBuffer;
 std::vector<cv::Mat> renderBuffer;
 
@@ -20,21 +21,29 @@ void keyboardFunc(unsigned char key, int x, int y)
 
 void timerFunc(int val)
 {
-    if (loopFlag)
+    if (loopFlag && std::accumulate(activeSubWin.begin(), activeSubWin.end(), 0))
     {
         glutSetWindow(mainWindow);
         glutPostRedisplay();
         glutTimerFunc(1000 / FPS, timerFunc, 0);
     }
+    else
+        glutLeaveMainLoop();
 }
 
 void refreshMainFunc()
 {
     for (size_t idx = 0; idx < subWindows.size(); ++idx)
     {
-        // Choose window
-        glutSetWindow(subWindows[idx]);
-        glutPostRedisplay();
+        if (activeSubWin[idx])
+        {
+            // Choose window
+            glutSetWindow(subWindows[idx]);
+            if (glutGetWindow() == subWindows[idx])
+                glutPostRedisplay();
+            else
+                activeSubWin[idx] = 0;
+        }
     }
 }
 
@@ -91,6 +100,7 @@ void createSubWindow(GLint mainWin, int maxX, int maxY)
 
         renderBuffer.push_back(cv::Mat());
         textureBuffer.push_back(tex);
+        activeSubWin.push_back(1);
     }
 }
 
