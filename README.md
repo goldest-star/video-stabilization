@@ -28,4 +28,4 @@ You can build from source using CMake.
 
 ## To Do
 
-NVIDIA Codec SDK based GPU accelerated video decode and encode.
+- NVIDIA Codec SDK based GPU accelerated video decode and encode.
