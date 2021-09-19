@@ -15,4 +15,6 @@
 #include "filter.hpp"
 #include "render.hpp"
 
+// #define DEBUG
+
 void mainProcess(char *input, int thID, int deviceNum, bool enhance = true);

@@ -24,6 +24,10 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
 
     cv::VideoCapture capVid;
 
+#ifdef DEBUG
+    cv::VideoWriter vidWriter;
+#endif
+
     // Init capture engine
     camVal = strtol(input, &strPtr, 10);
     if (strPtr - input == strlen(input))
@@ -82,9 +86,12 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
             goto cleanup;
         }
     }
+
 #ifdef DEBUG
     cv::namedWindow(std::to_string(thID), cv::WINDOW_NORMAL);
+    vidWriter.open(std::to_string(thID) + ".avi", capVid.get(cv::CAP_PROP_FOURCC), capVid.get(cv::CAP_PROP_FPS), cv::Size(capVid.get(cv::CAP_PROP_FRAME_WIDTH) * 2, capVid.get(cv::CAP_PROP_FRAME_HEIGHT)), true);
 #endif
+
     // Main process
     cropperMat = cv::getRotationMatrix2D(cv::Point2f(orgFrame.cols / 2, orgFrame.rows / 2), 0, SCALE_FACTOR);
     while (loopFlag && capVid.isOpened())
@@ -132,14 +139,14 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
             pFilter->apply(splitFrame[2], splitFrame[2]);
             cv::cuda::merge(splitFrame, orgFrame);
 
-            cv::cuda::cvtColor(orgFrame, bufferFrame, cv::COLOR_BGR2HLS);
+            cv::cuda::cvtColor(orgFrame, bufferFrame, cv::COLOR_BGR2HSV);
 
             cv::cuda::split(bufferFrame, splitFrame);
             cv::cuda::equalizeHist(splitFrame[1], splitFrame[1]);
             cv::cuda::merge(splitFrame, bufferFrame);
 
             // Convert RGB since older OpenGL does not support BGR
-            cv::cuda::cvtColor(bufferFrame, orgFrame, cv::COLOR_HLS2RGB);
+            cv::cuda::cvtColor(bufferFrame, orgFrame, cv::COLOR_HSV2RGB);
 
             cv::cuda::bilateralFilter(orgFrame, orgFrame, 5, 45, 45);
         }
@@ -156,12 +163,16 @@ void mainProcess(char *input, int thID, int deviceNum, bool enhance)
         cv::Mat imFrame, imFrame1, imFrame2;
         orgCPUFrame.copyTo(imFrame1);
         orgFrame.download(imFrame2);
+        /*
         auto b1 = fKeyPoint2StdVector(vKeyPoints);
         for (int idx = 0; idx < b1.size(); ++idx)
         {
             cv::circle(imFrame1, b1[idx], 2, cv::Scalar(0, 0, 127), cv::FILLED);
         }
+        */
+        cv::cvtColor(imFrame2, imFrame2, cv::COLOR_BGR2RGB);
         cv::hconcat(imFrame1, imFrame2, imFrame);
+        vidWriter.write(imFrame);
         cv::imshow(std::to_string(thID), imFrame);
         cv::waitKey(1);
 #endif
@@ -187,6 +198,9 @@ cleanup:
     glutDestroyWindow(subWindows[thID]);
 
     capVid.release();
+#ifdef DEBUG
+    vidWriter.release();
+#endif
 
     return;
 }
