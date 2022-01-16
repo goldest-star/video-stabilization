@@ -12,7 +12,6 @@
 
 * [General Info](#general-info)
 * [Installation](#installation)
-* [To Do](#to-do)
 
 ## General Info
 
@@ -25,7 +24,3 @@ Video stabilization is a software-based approach in real-time to eliminating env
 ## Installation
 
 You can build from source using CMake.
-
-## To Do
-
-- NVIDIA Codec SDK based GPU accelerated video decode and encode.
