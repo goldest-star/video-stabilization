@@ -15,7 +15,7 @@
 
 ## General Info
 
-Video stabilization is a software-based approach in real-time to eliminating environmental effects (wind, heavy vehicle etc.) and enhance the visual performance that degrade video streaming quality. Application is developed with following configuration:
+Video stabilization is a software-based approach (using OpenCV and its CUDA backend) in real-time to eliminating environmental effects (wind, heavy vehicle etc.) and enhance the visual performance that degrade video streaming quality. Application is developed with following configuration:
 
 * Opencv 4.5.3
 * Cuda 11.2
