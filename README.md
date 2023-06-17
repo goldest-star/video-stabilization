@@ -6,7 +6,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/egecetin/VideoStabilization?style=plastic)
 
 <!-- Add example gif here !!!-->
-<img src="https://github.com/egecetin/VideoStabilization/blob/5e763872012221003875c2401f425dde4ac3c99a/resource/sample.gif" alt="drawing" width="600"/>
+<img src="https://github.com/goldest-star/video-stabilization/blob/main/resource/sample.gif" alt="drawing" width="600"/>
 
 ## Contents
 
